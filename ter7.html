@@ -1,0 +1,1489 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Circuit Analysis Interactive Guide</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        @keyframes pulse-glow {
+            0%, 100% { box-shadow: 0 0 20px rgba(59, 130, 246, 0.5); }
+            50% { box-shadow: 0 0 40px rgba(59, 130, 246, 0.8); }
+        }
+        .glow-animation {
+            animation: pulse-glow 2s infinite;
+        }
+        .circuit-element {
+            transition: all 0.3s ease;
+        }
+        .circuit-element:hover {
+            transform: scale(1.05);
+        }
+        @keyframes current-flow {
+            0% { stroke-dashoffset: 100; }
+            100% { stroke-dashoffset: 0; }
+        }
+        .current-animation {
+            stroke-dasharray: 10;
+            animation: current-flow 2s linear infinite;
+        }
+        .fade-in {
+            animation: fadeIn 0.5s ease-in;
+        }
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        @keyframes float {
+            0%, 100% { transform: translateY(0px); }
+            50% { transform: translateY(-10px); }
+        }
+        .floating {
+            animation: float 3s ease-in-out infinite;
+        }
+        .gradient-text {
+            background: linear-gradient(45deg, #60a5fa, #a855f7, #ec4899);
+            background-size: 200% 200%;
+            animation: gradientShift 3s ease infinite;
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+        @keyframes gradientShift {
+            0%, 100% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+        }
+    </style>
+</head>
+<body class="bg-gradient-to-br from-gray-900 via-blue-900 to-purple-900 min-h-screen text-white">
+    <nav class="fixed top-0 w-full bg-black/30 backdrop-blur-md z-50 border-b border-white/10">
+        <div class="container mx-auto px-4 py-3">
+            <div class="flex items-center justify-between">
+                <h1 class="text-2xl font-bold gradient-text floating">
+                    ⚡ Circuit Analysis Master
+                </h1>
+                <div class="hidden md:flex space-x-6">
+                    <button onclick="showSection('fundamentals')" class="hover:text-blue-400 transition">Fundamentals</button>
+                    <button onclick="showSection('kirchhoff')" class="hover:text-purple-400 transition">Kirchhoff's Laws</button>
+                    <button onclick="showSection('equivalent')" class="hover:text-green-400 transition">Equivalent Circuits</button>
+                    <button onclick="showSection('stardelta')" class="hover:text-yellow-400 transition">Star-Delta</button>
+                    <button onclick="showSection('ac')" class="hover:text-pink-400 transition">AC Analysis</button>
+                    <button onclick="showSection('theorems')" class="hover:text-cyan-400 transition">Theorems</button>
+                    <button onclick="showSection('calculator')" class="hover:text-orange-400 transition">Calculator</button>
+                </div>
+                <button onclick="toggleMenu()" class="md:hidden">
+                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16m-7 6h7"></path>
+                    </svg>
+                </button>
+            </div>
+        </div>
+    </nav>
+
+    <div id="sideMenu" class="fixed left-0 top-16 h-full w-64 bg-black/20 backdrop-blur-sm transform -translate-x-full transition-transform duration-300 z-40 overflow-y-auto md:hidden">
+        <div class="p-4">
+            <div class="space-y-2">
+                <button onclick="showSection('fundamentals')" class="w-full text-left px-4 py-2 rounded-lg hover:bg-white/10 transition">
+                    📚 Fundamentals
+                </button>
+                <button onclick="showSection('kirchhoff')" class="w-full text-left px-4 py-2 rounded-lg hover:bg-white/10 transition">
+                    ⚖️ Kirchhoff's Laws
+                </button>
+                <button onclick="showSection('equivalent')" class="w-full text-left px-4 py-2 rounded-lg hover:bg-white/10 transition">
+                    🔄 Equivalent Circuits
+                </button>
+                <button onclick="showSection('stardelta')" class="w-full text-left px-4 py-2 rounded-lg hover:bg-white/10 transition">
+                    ⭐ Star-Delta Transform
+                </button>
+                <button onclick="showSection('ac')" class="w-full text-left px-4 py-2 rounded-lg hover:bg-white/10 transition">
+                    〰️ AC Analysis
+                </button>
+                <button onclick="showSection('theorems')" class="w-full text-left px-4 py-2 rounded-lg hover:bg-white/10 transition">
+                    📐 Network Theorems
+                </button>
+                <button onclick="showSection('calculator')" class="w-full text-left px-4 py-2 rounded-lg hover:bg-white/10 transition">
+                    🧮 Calculator
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <main class="pt-20 px-4 pb-8">
+        <div class="container mx-auto max-w-6xl">
+            <div id="hero" class="section mb-12 text-center fade-in">
+                <h2 class="text-5xl md:text-6xl font-bold mb-4 gradient-text">
+                    Master Circuit Analysis
+                </h2>
+                <p class="text-xl text-gray-300 mb-8">Interactive guide to electrical circuits and network theorems</p>
+                <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
+                    <div class="bg-white/10 backdrop-blur-sm rounded-xl p-4 circuit-element glow-animation">
+                        <div class="text-3xl mb-2">⚡</div>
+                        <div class="text-sm">Voltage</div>
+                    </div>
+                    <div class="bg-white/10 backdrop-blur-sm rounded-xl p-4 circuit-element">
+                        <div class="text-3xl mb-2">🔌</div>
+                        <div class="text-sm">Current</div>
+                    </div>
+                    <div class="bg-white/10 backdrop-blur-sm rounded-xl p-4 circuit-element">
+                        <div class="text-3xl mb-2">🔧</div>
+                        <div class="text-sm">Resistance</div>
+                    </div>
+                    <div class="bg-white/10 backdrop-blur-sm rounded-xl p-4 circuit-element">
+                        <div class="text-3xl mb-2">⚙️</div>
+                        <div class="text-sm">Power</div>
+                    </div>
+                </div>
+                <div class="flex flex-wrap justify-center gap-4 mb-8">
+                    <button onclick="showSection('fundamentals')" class="bg-gradient-to-r from-blue-500 to-purple-500 px-6 py-3 rounded-full hover:from-blue-600 hover:to-purple-600 transition circuit-element">
+                        Start Learning
+                    </button>
+                    <button onclick="showSection('calculator')" class="bg-gradient-to-r from-green-500 to-blue-500 px-6 py-3 rounded-full hover:from-green-600 hover:to-blue-600 transition circuit-element">
+                        Quick Calculator
+                    </button>
+                </div>
+            </div>
+
+            <div id="fundamentals" class="section hidden">
+                <div class="bg-white/10 backdrop-blur-sm rounded-2xl p-8 mb-8 glow-animation">
+                    <h3 class="text-3xl font-bold mb-6 gradient-text">Circuit Fundamentals</h3>
+                    
+                    <div class="space-y-6">
+                        <div class="bg-gradient-to-r from-blue-900/30 to-purple-900/30 rounded-xl p-6 border border-blue-400/30">
+                            <h4 class="text-xl font-semibold mb-3 text-yellow-300">📍 Node</h4>
+                            <p class="text-gray-300 mb-4">A point in a circuit where two or more circuit elements meet. It's a junction point where current can divide or combine.</p>
+                            <div class="bg-black/40 rounded-lg p-4">
+                                <div class="flex items-center space-x-4">
+                                    <svg viewBox="0 0 150 100" class="w-32 h-20">
+                                        <circle cx="75" cy="50" r="6" fill="#60a5fa" class="glow-animation"/>
+                                        <line x1="25" y1="50" x2="69" y2="50" stroke="white" stroke-width="2"/>
+                                        <line x1="81" y1="50" x2="125" y2="50" stroke="white" stroke-width="2"/>
+                                        <line x1="75" y1="20" x2="75" y2="44" stroke="white" stroke-width="2"/>
+                                        <text x="80" y="35" fill="white" font-size="10">Node</text>
+                                    </svg>
+                                    <div class="text-sm text-green-400">
+                                        <p>• Connection point</p>
+                                        <p>• Current distribution</p>
+                                        <p>• KCL applies here</p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="bg-gradient-to-r from-purple-900/30 to-pink-900/30 rounded-xl p-6 border border-purple-400/30">
+                            <h4 class="text-xl font-semibold mb-3 text-yellow-300">🌿 Branch</h4>
+                            <p class="text-gray-300 mb-4">A single element or group of elements connected between two nodes. Current flowing through a branch is the same at all points.</p>
+                            <div class="bg-black/40 rounded-lg p-4">
+                                <div class="flex items-center space-x-4">
+                                    <svg viewBox="0 0 150 80" class="w-32 h-16">
+                                        <circle cx="25" cy="40" r="4" fill="#22c55e"/>
+                                        <circle cx="125" cy="40" r="4" fill="#22c55e"/>
+                                        <line x1="29" y1="40" x2="60" y2="40" stroke="white" stroke-width="2"/>
+                                        <rect x="60" y="35" width="30" height="10" fill="none" stroke="white" stroke-width="2"/>
+                                        <line x1="90" y1="40" x2="121" y2="40" stroke="white" stroke-width="2"/>
+                                        <text x="65" y="50" fill="white" font-size="8">Resistor</text>
+                                        <path d="M 35 40 L 45 40" stroke="#22c55e" stroke-width="2" marker-end="url(#arrowhead)"/>
+                                    </svg>
+                                    <div class="text-sm text-green-400">
+                                        <p>• Between two nodes</p>
+                                        <p>• Same current throughout</p>
+                                        <p>• Can contain multiple elements</p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="bg-gradient-to-r from-green-900/30 to-blue-900/30 rounded-xl p-6 border border-green-400/30">
+                            <h4 class="text-xl font-semibold mb-3 text-yellow-300">🔄 Loop</h4>
+                            <p class="text-gray-300 mb-4">Any closed path in a circuit. A loop starts at a node, passes through a set of nodes, and returns to the starting node without passing through any node more than once.</p>
+                            <div class="bg-black/40 rounded-lg p-4">
+                                <div class="flex items-center space-x-4">
+                                    <svg viewBox="0 0 150 120" class="w-32 h-24">
+                                        <circle cx="40" cy="30" r="4" fill="#22c55e"/>
+                                        <circle cx="110" cy="30" r="4" fill="#22c55e"/>
+                                        <circle cx="110" cy="90" r="4" fill="#22c55e"/>
+                                        <circle cx="40" cy="90" r="4" fill="#22c55e"/>
+                                        <line x1="44" y1="30" x2="106" y2="30" stroke="white" stroke-width="2"/>
+                                        <line x1="110" y1="34" x2="110" y2="86" stroke="white" stroke-width="2"/>
+                                        <line x1="106" y1="90" x2="44" y2="90" stroke="white" stroke-width="2"/>
+                                        <line x1="40" y1="86" x2="40" y2="34" stroke="white" stroke-width="2"/>
+                                        <path d="M 75 30 A 20 20 0 0 1 95 50" fill="none" stroke="#ef4444" stroke-width="2" stroke-dasharray="5" marker-end="url(#arrowhead2)"/>
+                                        <text x="65" y="50" fill="#ef4444" font-size="10">Loop</text>
+                                    </svg>
+                                    <div class="text-sm text-green-400">
+                                        <p>• Closed path</p>
+                                        <p>• Returns to starting point</p>
+                                        <p>• KVL applies here</p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="bg-gradient-to-r from-pink-900/30 to-orange-900/30 rounded-xl p-6 border border-pink-400/30">
+                            <h4 class="text-xl font-semibold mb-3 text-yellow-300">🔲 Mesh</h4>
+                            <p class="text-gray-300 mb-4">A loop that does not contain any other loops within it. It's the smallest possible loop in a circuit (only applies to planar circuits).</p>
+                            <div class="bg-purple-900/30 rounded-lg p-4 border-2 border-purple-400">
+                                <p class="text-purple-300 font-semibold mb-3">⚡ Key Difference: Loop vs Mesh</p>
+                                <div class="grid md:grid-cols-2 gap-4">
+                                    <div class="space-y-2">
+                                        <p class="text-yellow-400 font-semibold">Loop:</p>
+                                        <ul class="text-gray-300 text-sm space-y-1">
+                                            <li>• Any closed path</li>
+                                            <li>• Can contain other loops</li>
+                                            <li>• General concept</li>
+                                        </ul>
+                                    </div>
+                                    <div class="space-y-2">
+                                        <p class="text-pink-400 font-semibold">Mesh:</p>
+                                        <ul class="text-gray-300 text-sm space-y-1">
+                                            <li>• No loops inside it</li>
+                                            <li>• Smallest possible loop</li>
+                                            <li>• Used in mesh analysis</li>
+                                        </ul>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="mt-8 bg-black/30 rounded-xl p-6">
+                        <h5 class="text-xl font-semibold mb-4 text-center">Simple Circuit Example</h5>
+                        <div class="flex justify-center">
+                            <svg viewBox="0 0 400 250" class="w-full max-w-lg">
+                                <circle cx="50" cy="125" r="25" fill="none" stroke="white" stroke-width="2"/>
+                                <text x="40" y="130" fill="white" font-size="12">V</text>
+                                
+                                <rect x="150" y="50" width="40" height="15" fill="none" stroke="white" stroke-width="2"/>
+                                <text x="160" y="45" fill="white" font-size="10">R₁</text>
+                                
+                                <rect x="150" y="180" width="40" height="15" fill="none" stroke="white" stroke-width="2"/>
+                                <text x="160" y="210" fill="white" font-size="10">R₂</text>
+                                
+                                <rect x="280" y="115" width="40" height="15" fill="none" stroke="white" stroke-width="2"/>
+                                <text x="290" y="140" fill="white" font-size="10">R₃</text>
+                                
+                                <line x1="75" y1="125" x2="150" y2="125" stroke="white" stroke-width="2"/>
+                                <line x1="150" y1="125" x2="150" y2="57" stroke="white" stroke-width="2"/>
+                                <line x1="150" y1="125" x2="150" y2="187" stroke="white" stroke-width="2"/>
+                                <line x1="190" y1="57" x2="280" y2="57" stroke="white" stroke-width="2"/>
+                                <line x1="190" y1="187" x2="280" y2="187" stroke="white" stroke-width="2"/>
+                                <line x1="280" y1="57" x2="280" y2="122" stroke="white" stroke-width="2"/>
+                                <line x1="280" y1="130" x2="280" y2="187" stroke="white" stroke-width="2"/>
+                                <line x1="320" y1="122" x2="350" y2="122" stroke="white" stroke-width="2"/>
+                                <line x1="350" y1="122" x2="350" y2="200" stroke="white" stroke-width="2"/>
+                                <line x1="350" y1="200" x2="50" y2="200" stroke="white" stroke-width="2"/>
+                                <line x1="50" y1="200" x2="50" y2="150" stroke="white" stroke-width="2"/>
+                                
+                                <circle cx="150" cy="125" r="3" fill="#60a5fa"/>
+                                <text x="155" y="120" fill="#60a5fa" font-size="10">A</text>
+                                <circle cx="280" cy="122" r="3" fill="#60a5fa"/>
+                                <text x="285" y="117" fill="#60a5fa" font-size="10">B</text>
+                                
+                                <path d="M 120 90 A 30 30 0 0 1 150 120" fill="none" stroke="#ef4444" stroke-width="2" stroke-dasharray="3" opacity="0.7"/>
+                                <text x="110" y="95" fill="#ef4444" font-size="10">Mesh 1</text>
+                                
+                                <path d="M 250 160 A 30 30 0 0 1 280 130" fill="none" stroke="#22c55e" stroke-width="2" stroke-dasharray="3" opacity="0.7"/>
+                                <text x="240" y="165" fill="#22c55e" font-size="10">Mesh 2</text>
+                                
+                                <defs>
+                                    <marker id="arrowhead" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto" fill="white">
+                                        <polygon points="0 0, 10 3.5, 0 7"/>
+                                    </marker>
+                                    <marker id="arrowhead2" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto" fill="#ef4444">
+                                        <polygon points="0 0, 10 3.5, 0 7"/>
+                                    </marker>
+                                </defs>
+                            </svg>
+                        </div>
+                        <div class="mt-4 text-center text-gray-300">
+                            <p>• <span class="text-blue-400">Nodes A & B</span> are junction points</p>
+                            <p>• <span class="text-white">Branches</span> contain individual resistors</p>
+                            <p>• <span class="text-red-400">Mesh 1</span> and <span class="text-green-400">Mesh 2</span> are independent loops</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div id="kirchhoff" class="section hidden">
+                <div class="bg-white/10 backdrop-blur-sm rounded-2xl p-8 mb-8">
+                    <h3 class="text-3xl font-bold mb-6 gradient-text">Kirchhoff's Laws</h3>
+                    
+                    <div class="grid md:grid-cols-2 gap-6">
+                        <div class="bg-gradient-to-br from-blue-900/50 to-purple-900/50 rounded-xl p-6 border border-blue-400/30">
+                            <h4 class="text-2xl font-semibold mb-4 text-yellow-300">⚖️ KCL (Current Law)</h4>
+                            <p class="text-gray-300 mb-4">The algebraic sum of currents entering a node equals the sum of currents leaving the node.</p>
+                            <div class="bg-black/40 rounded-lg p-4 mb-4">
+                                <p class="text-green-400 font-mono text-center text-lg">∑ I_entering = ∑ I_leaving</p>
+                                <p class="text-gray-400 text-center text-sm mt-2">or equivalently: ∑ I = 0</p>
+                            </div>
+                            <div class="space-y-2 text-sm text-gray-300">
+                                <p>• <span class="text-blue-400">Principle:</span> Conservation of charge</p>
+                                <p>• <span class="text-blue-400">Applied at:</span> Nodes/junctions</p>
+                                <p>• <span class="text-blue-400">Sign convention:</span> Entering (+), Leaving (-)</p>
+                            </div>
+                        </div>
+
+                        <div class="bg-gradient-to-br from-purple-900/50 to-pink-900/50 rounded-xl p-6 border border-purple-400/30">
+                            <h4 class="text-2xl font-semibold mb-4 text-yellow-300">🔌 KVL (Voltage Law)</h4>
+                            <p class="text-gray-300 mb-4">The algebraic sum of voltages around any closed loop equals zero.</p>
+                            <div class="bg-black/40 rounded-lg p-4 mb-4">
+                                <p class="text-green-400 font-mono text-center text-lg">∑ V = 0</p>
+                                <p class="text-gray-400 text-center text-sm mt-2">around any closed loop</p>
+                            </div>
+                            <div class="space-y-2 text-sm text-gray-300">
+                                <p>• <span class="text-purple-400">Principle:</span> Conservation of energy</p>
+                                <p>• <span class="text-purple-400">Applied around:</span> Closed loops</p>
+                                <p>• <span class="text-purple-400">Sign convention:</span> Follow consistent direction</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="mt-8 bg-gradient-to-r from-blue-900/30 to-cyan-900/30 rounded-xl p-6 border border-cyan-400/30">
+                        <h5 class="text-xl font-semibold mb-4 text-cyan-300">🔄 KCL Interactive Demo</h5>
+                        <div class="flex flex-col lg:flex-row items-center gap-6">
+                            <svg viewBox="0 0 300 200" class="w-full max-w-sm">
+                                <circle cx="150" cy="100" r="8" fill="#60a5fa" class="glow-animation"/>
+                                <text x="160" y="85" fill="white" font-size="14" font-weight="bold">Node A</text>
+                                
+                                <path d="M 50 100 L 140 100" stroke="#22c55e" stroke-width="3" marker-end="url(#arrowgreen)" class="current-animation"/>
+                                <text x="80" y="85" fill="#22c55e" font-size="12" font-weight="bold">I₁ = 5A</text>
+                                
+                                <path d="M 50 140 L 140 110" stroke="#22c55e" stroke-width="3" marker-end="url(#arrowgreen)" class="current-animation"/>
+                                <text x="70" y="155" fill="#22c55e" font-size="12" font-weight="bold">I₂ = 3A</text>
+                                
+                                <path d="M 160 100 L 250 100" stroke="#ef4444" stroke-width="3" marker-end="url(#arrowred)" class="current-animation"/>
+                                <text x="180" y="85" fill="#ef4444" font-size="12" font-weight="bold">I₃ = 4A</text>
+                                
+                                <path d="M 160 110 L 230 150" stroke="#ef4444" stroke-width="3" marker-end="url(#arrowred)" class="current-animation"/>
+                                <text x="180" y="140" fill="#ef4444" font-size="12" font-weight="bold">I₄ = 4A</text>
+                                
+                                <defs>
+                                    <marker id="arrowgreen" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto" fill="#22c55e">
+                                        <polygon points="0 0, 10 3.5, 0 7"/>
+                                    </marker>
+                                    <marker id="arrowred" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto" fill="#ef4444">
+                                        <polygon points="0 0, 10 3.5, 0 7"/>
+                                    </marker>
+                                </defs>
+                            </svg>
+                            <div class="bg-black/40 rounded-lg p-6 flex-1">
+                                <p class="text-cyan-300 font-semibold mb-3">KCL Application:</p>
+                                <div class="space-y-2 font-mono">
+                                    <p class="text-green-400">Currents IN: I₁ + I₂ = 5A + 3A = 8A</p>
+                                    <p class="text-red-400">Currents OUT: I₃ + I₄ = 4A + 4A = 8A</p>
+                                    <p class="text-blue-400 border-t border-gray-600 pt-2 mt-3">∑ I_in = ∑ I_out ✓</p>
+                                    <p class="text-yellow-400">KCL: 5 + 3 - 4 - 4 = 0 ✓</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="mt-6 bg-gradient-to-r from-purple-900/30 to-pink-900/30 rounded-xl p-6 border border-pink-400/30">
+                        <h5 class="text-xl font-semibold mb-4 text-pink-300">🔄 KVL Interactive Demo</h5>
+                        <div class="flex flex-col lg:flex-row items-center gap-6">
+                            <svg viewBox="0 0 300 200" class="w-full max-w-sm">
+                                <circle cx="50" cy="100" r="20" fill="none" stroke="white" stroke-width="2"/>
+                                <text x="40" y="105" fill="white" font-size="10">12V</text>
+                                
+                                <rect x="120" y="45" width="30" height="10" fill="none" stroke="white" stroke-width="2"/>
+                                <text x="125" y="40" fill="white" font-size="10">R₁=3Ω</text>
+                                
+                                <rect x="120" y="145" width="30" height="10" fill="none" stroke="white" stroke-width="2"/>
+                                <text x="125" y="170" fill="white" font-size="10">R₂=6Ω</text>
+                                
+                                <rect x="200" y="92" width="30" height="10" fill="none" stroke="white" stroke-width="2"/>
+                                <text x="205" y="110" fill="white" font-size="10">R₃=3Ω</text>
+                                
+                                <line x1="70" y1="100" x2="120" y2="100" stroke="white" stroke-width="2"/>
+                                <line x1="120" y1="100" x2="120" y2="55" stroke="white" stroke-width="2"/>
+                                <line x1="120" y1="100" x2="120" y2="150" stroke="white" stroke-width="2"/>
+                                <line x1="150" y1="50" x2="200" y2="50" stroke="white" stroke-width="2"/>
+                                <line x1="150" y1="150" x2="200" y2="150" stroke="white" stroke-width="2"/>
+                                <line x1="200" y1="50" x2="200" y2="97" stroke="white" stroke-width="2"/>
+                                <line x1="200" y1="102" x2="200" y2="150" stroke="white" stroke-width="2"/>
+                                <line x1="230" y1="97" x2="260" y2="97" stroke="white" stroke-width="2"/>
+                                <line x1="260" y1="97" x2="260" y2="170" stroke="white" stroke-width="2"/>
+                                <line x1="260" y1="170" x2="50" y2="170" stroke="white" stroke-width="2"/>
+                                <line x1="50" y1="170" x2="50" y2="120" stroke="white" stroke-width="2"/>
+                                
+                                <path d="M 85 80 A 40 40 0 0 1 180 80" fill="none" stroke="#f59e0b" stroke-width="3" stroke-dasharray="5" marker-end="url(#arrowyellow)" opacity="0.8"/>
+                                <text x="120" y="20" fill="#f59e0b" font-size="12" font-weight="bold">Loop Direction</text>
+                                
+                                <text x="80" y="90" fill="#22c55e" font-size="10">+12V</text>
+                                <text x="105" y="35" fill="#ef4444" font-size="10">-3V</text>
+                                <text x="105" y="180" fill="#ef4444" font-size="10">-6V</text>
+                                <text x="185" y="85" fill="#ef4444" font-size="10">-3V</text>
+                                
+                                <defs>
+                                    <marker id="arrowyellow" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto" fill="#f59e0b">
+                                        <polygon points="0 0, 10 3.5, 0 7"/>
+                                    </marker>
+                                </defs>
+                            </svg>
+                            <div class="bg-black/40 rounded-lg p-6 flex-1">
+                                <p class="text-pink-300 font-semibold mb-3">KVL Application:</p>
+                                <div class="space-y-2 font-mono text-sm">
+                                    <p class="text-green-400">Voltage Source: +12V</p>
+                                    <p class="text-red-400">Voltage drops:</p>
+                                    <p class="text-red-400 ml-4">V₁ = I × R₁ = 1A × 3Ω = -3V</p>
+                                    <p class="text-red-400 ml-4">V₂ = I × R₂ = 1A × 6Ω = -6V</p>
+                                    <p class="text-red-400 ml-4">V₃ = I × R₃ = 1A × 3Ω = -3V</p>
+                                    <p class="text-blue-400 border-t border-gray-600 pt-2 mt-3">KVL: 12 - 3 - 6 - 3 = 0 ✓</p>
+                                    <p class="text-yellow-400">∑ Voltage rises = ∑ Voltage drops</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div id="equivalent" class="section hidden">
+                <div class="bg-white/10 backdrop-blur-sm rounded-2xl p-8 mb-8">
+                    <h3 class="text-3xl font-bold mb-6 gradient-text">Equivalent Circuits</h3>
+                    
+                    <div class="space-y-6">
+                        <div class="bg-gradient-to-r from-blue-900/40 to-purple-900/40 rounded-xl p-6 border border-blue-400/30">
+                            <h4 class="text-xl font-semibold mb-4 text-yellow-300">⚡ Series Resistors</h4>
+                            <div class="grid md:grid-cols-2 gap-6">
+                                <div>
+                                    <svg viewBox="0 0 300 80" class="w-full mb-4">
+                                        <rect x="50" y="35" width="30" height="10" fill="none" stroke="white" stroke-width="2"/>
+                                        <text x="60" y="30" fill="white" font-size="10">R₁</text>
+                                        
+                                        <rect x="120" y="35" width="30" height="10" fill="none" stroke="white" stroke-width="2"/>
+                                        <text x="130" y="30" fill="white" font-size="10">R₂</text>
+                                        
+                                        <rect x="190" y="35" width="30" height="10" fill="none" stroke="white" stroke-width="2"/>
+                                        <text x="200" y="30" fill="white" font-size="10">R₃</text>
+                                        
+                                        <line x1="20" y1="40" x2="50" y2="40" stroke="white" stroke-width="2"/>
+                                        <line x1="80" y1="40" x2="120" y2="40" stroke="white" stroke-width="2"/>
+                                        <line x1="150" y1="40" x2="190" y2="40" stroke="white" stroke-width="2"/>
+                                        <line x1="220" y1="40" x2="250" y2="40" stroke="white" stroke-width="2"/>
+                                        
+                                        <path d="M 30 40 L 45 40" stroke="#22c55e" stroke-width="2" marker-end="url(#arrowhead)"/>
+                                        <text x="25" y="30" fill="#22c55e" font-size="10">I</text>
+                                    </svg>
+                                    <p class="text-gray-300 text-sm mb-4">Same current flows through all resistors</p>
+                                </div>
+                                <div class="bg-black/40 rounded-lg p-4">
+                                    <p class="text-green-400 font-mono text-lg mb-2">R_eq = R₁ + R₂ + R₃ + ...</p>
+                                    <div class="text-sm text-gray-300 space-y-1">
+                                        <p>• Current is the same everywhere</p>
+                                        <p>• Voltages add up: V_total = V₁ + V₂ + V₃</p>
+                                        <p>• Total resistance increases</p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="bg-gradient-to-r from-purple-900/40 to-pink-900/40 rounded-xl p-6 border border-purple-400/30">
+                            <h4 class="text-xl font-semibold mb-4 text-yellow-300">⚡ Parallel Resistors</h4>
+                            <div class="grid md:grid-cols-2 gap-6">
+                                <div>
+                                    <svg viewBox="0 0 300 120" class="w-full mb-4">
+                                        <rect x="120" y="30" width="30" height="10" fill="none" stroke="white" stroke-width="2"/>
+                                        <text x="130" y="25" fill="white" font-size="10">R₁</text>
+                                        
+                                        <rect x="120" y="55" width="30" height="10" fill="none" stroke="white" stroke-width="2"/>
+                                        <text x="130" y="75" fill="white" font-size="10">R₂</text>
+                                        
+                                        <rect x="120" y="80" width="30" height="10" fill="none" stroke="white" stroke-width="2"/>
+                                        <text x="130" y="100" fill="white" font-size="10">R₃</text>
+                                        
+                                        <line x1="50" y1="35" x2="50" y2="85" stroke="white" stroke-width="2"/>
+                                        <line x1="200" y1="35" x2="200" y2="85" stroke="white" stroke-width="2"/>
+                                        <line x1="50" y1="35" x2="120" y2="35" stroke="white" stroke-width="2"/>
+                                        <line x1="50" y1="60" x2="120" y2="60" stroke="white" stroke-width="2"/>
+                                        <line x1="50" y1="85" x2="120" y2="85" stroke="white" stroke-width="2"/>
+                                        <line x1="150" y1="35" x2="200" y2="35" stroke="white" stroke-width="2"/>
+                                        <line x1="150" y1="60" x2="200" y2="60" stroke="white" stroke-width="2"/>
+                                        <line x1="150" y1="85" x2="200" y2="85" stroke="white" stroke-width="2"/>
+                                        
+                                        <path d="M 30 60 L 45 60" stroke="#22c55e" stroke-width="2" marker-end="url(#arrowhead)"/>
+                                        <text x="25" y="50" fill="#22c55e" font-size="10">I</text>
+                                        
+                                        <path d="M 90 35 L 115 35" stroke="#ef4444" stroke-width="1" marker-end="url(#arrowhead)"/>
+                                        <text x="85" y="30" fill="#ef4444" font-size="8">I₁</text>
+                                        
+                                        <path d="M 90 60 L 115 60" stroke="#ef4444" stroke-width="1" marker-end="url(#arrowhead)"/>
+                                        <text x="85" y="55" fill="#ef4444" font-size="8">I₂</text>
+                                        
+                                        <path d="M 90 85 L 115 85" stroke="#ef4444" stroke-width="1" marker-end="url(#arrowhead)"/>
+                                        <text x="85" y="80" fill="#ef4444" font-size="8">I₃</text>
+                                    </svg>
+                                    <p class="text-gray-300 text-sm mb-4">Same voltage across all resistors</p>
+                                </div>
+                                <div class="bg-black/40 rounded-lg p-4">
+                                    <p class="text-green-400 font-mono text-lg mb-2">1/R_eq = 1/R₁ + 1/R₂ + 1/R₃ + ...</p>
+                                    <div class="text-sm text-gray-300 space-y-1">
+                                        <p>• Voltage is the same across all</p>
+                                        <p>• Currents add up: I_total = I₁ + I₂ + I₃</p>
+                                        <p>• Total resistance decreases</p>
+                                        <p>• For 2 resistors: R_eq = (R₁×R₂)/(R₁+R₂)</p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="bg-gradient-to-r from-green-900/40 to-blue-900/40 rounded-xl p-6 border border-green-400/30">
+                            <h4 class="text-xl font-semibold mb-4 text-yellow-300">🌀 Inductors</h4>
+                            <div class="grid md:grid-cols-2 gap-4">
+                                <div class="bg-black/40 rounded-lg p-4">
+                                    <p class="text-green-300 font-semibold mb-2">Series Inductors:</p>
+                                    <p class="text-green-400 font-mono text-lg mb-2">L_eq = L₁ + L₂ + L₃ + ...</p>
+                                    <p class="text-gray-300 text-sm">Same as resistors in series</p>
+                                </div>
+                                <div class="bg-black/40 rounded-lg p-4">
+                                    <p class="text-blue-300 font-semibold mb-2">Parallel Inductors:</p>
+                                    <p class="text-green-400 font-mono text-lg mb-2">1/L_eq = 1/L₁ + 1/L₂ + 1/L₃ + ...</p>
+                                    <p class="text-gray-300 text-sm">Same as resistors in parallel</p>
+                                </div>
+                            </div>
+                            <div class="mt-4 bg-green-900/30 rounded-lg p-4">
+                                <p class="text-green-300 font-semibold mb-2">Example Problem:</p>
+                                <p class="text-gray-300 text-sm mb-2">Three parallel inductors: L₁ = 10mH, L₂ = 20mH, L₃ = 20mH</p>
+                                <div class="font-mono text-sm">
+                                    <p class="text-yellow-400">1/L_eq = 1/10 + 1/20 + 1/20 = 0.1 + 0.05 + 0.05 = 0.2</p>
+                                    <p class="text-green-400">L_eq = 1/0.2 = 5 mH</p>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="bg-gradient-to-r from-pink-900/40 to-orange-900/40 rounded-xl p-6 border border-pink-400/30">
+                            <h4 class="text-xl font-semibold mb-4 text-yellow-300">⚡ Capacitors</h4>
+                            <div class="grid md:grid-cols-2 gap-4">
+                                <div class="bg-black/40 rounded-lg p-4">
+                                    <p class="text-pink-300 font-semibold mb-2">Series Capacitors:</p>
+                                    <p class="text-green-400 font-mono text-lg mb-2">1/C_eq = 1/C₁ + 1/C₂ + 1/C₃ + ...</p>
+                                    <p class="text-gray-300 text-sm">Opposite to resistors!</p>
+                                </div>
+                                <div class="bg-black/40 rounded-lg p-4">
+                                    <p class="text-orange-300 font-semibold mb-2">Parallel Capacitors:</p>
+                                    <p class="text-green-400 font-mono text-lg mb-2">C_eq = C₁ + C₂ + C₃ + ...</p>
+                                    <p class="text-gray-300 text-sm">Opposite to resistors!</p>
+                                </div>
+                            </div>
+                            <div class="mt-4 bg-pink-900/30 rounded-lg p-4">
+                                <p class="text-pink-300 font-semibold mb-2">Example Problems:</p>
+                                <div class="space-y-3">
+                                    <div>
+                                        <p class="text-gray-300 text-sm mb-1">Series: C₁ = 2.0μF, C₂ = 10.0μF</p>
+                                        <div class="font-mono text-sm">
+                                            <p class="text-yellow-400">1/C_eq = 1/2.0 + 1/10.0 = 0.5 + 0.1 = 0.6</p>
+                                            <p class="text-green-400">C_eq = 1/0.6 = 1.67 μF</p>
+                                        </div>
+                                    </div>
+                                    <div>
+                                        <p class="text-gray-300 text-sm mb-1">If C₂ = 10.0 pF instead:</p>
+                                        <div class="font-mono text-sm">
+                                            <p class="text-yellow-400">1/C_eq = 1/2000 + 1/10 = 0.0005 + 0.1 = 0.1005</p>
+                                            <p class="text-green-400">C_eq ≈ 9.95 pF</p>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="bg-gradient-to-r from-indigo-900/40 to-purple-900/40 rounded-xl p-6 border border-indigo-400/30">
+                            <h4 class="text-xl font-semibold mb-4 text-yellow-300">📊 Division Rules</h4>
+                            <div class="grid md:grid-cols-2 gap-6">
+                                <div class="space-y-4">
+                                    <div class="bg-black/40 rounded-lg p-4">
+                                        <p class="text-indigo-300 font-semibold mb-2">Voltage Division (Series):</p>
+                                        <p class="text-green-400 font-mono mb-2">V_x = V_total × (R_x/R_total)</p>
+                                        <svg viewBox="0 0 200 120" class="w-full mb-2">
+                                            <rect x="80" y="20" width="20" height="8" fill="none" stroke="white" stroke-width="1"/>
+                                            <text x="75" y="15" fill="white" font-size="8">R₁</text>
+                                            <rect x="80" y="70" width="20" height="8" fill="none" stroke="white" stroke-width="1"/>
+                                            <text x="75" y="95" fill="white" font-size="8">R₂</text>
+                                            
+                                            <line x1="90" y1="10" x2="90" y2="20" stroke="white" stroke-width="1"/>
+                                            <line x1="90" y1="28" x2="90" y2="70" stroke="white" stroke-width="1"/>
+                                            <line x1="90" y1="78" x2="90" y2="90" stroke="white" stroke-width="1"/>
+                                            
+                                            <circle cx="30" cy="50" r="15" fill="none" stroke="white" stroke-width="1"/>
+                                            <text x="25" y="53" fill="white" font-size="8">V</text>
+                                            <line x1="30" y1="10" x2="30" y2="35" stroke="white" stroke-width="1"/>
+                                            <line x1="30" y1="65" x2="30" y2="90" stroke="white" stroke-width="1"/>
+                                            <line x1="30" y1="10" x2="90" y2="10" stroke="white" stroke-width="1"/>
+                                            <line x1="30" y1="90" x2="90" y2="90" stroke="white" stroke-width="1"/>
+                                            
+                                            <text x="105" y="25" fill="#22c55e" font-size="8">V₁</text>
+                                            <text x="105" y="75" fill="#ef4444" font-size="8">V₂</text>
+                                        </svg>
+                                        <p class="text-gray-300 text-xs">V₁ = V × R₁/(R₁+R₂)</p>
+                                    </div>
+                                </div>
+                                <div class="space-y-4">
+                                    <div class="bg-black/40 rounded-lg p-4">
+                                        <p class="text-purple-300 font-semibold mb-2">Current Division (Parallel):</p>
+                                        <p class="text-green-400 font-mono mb-2">I_x = I_total × (R_other/R_total)</p>
+                                        <svg viewBox="0 0 200 120" class="w-full mb-2">
+                                            <rect x="80" y="35" width="20" height="8" fill="none" stroke="white" stroke-width="1"/>
+                                            <text x="85" y="30" fill="white" font-size="8">R₁</text>
+                                            <rect x="80" y="65" width="20" height="8" fill="none" stroke="white" stroke-width="1"/>
+                                            <text x="85" y="85" fill="white" font-size="8">R₂</text>
+                                            
+                                            <line x1="50" y1="39" x2="50" y2="69" stroke="white" stroke-width="1"/>
+                                            <line x1="130" y1="39" x2="130" y2="69" stroke="white" stroke-width="1"/>
+                                            <line x1="50" y1="39" x2="80" y2="39" stroke="white" stroke-width="1"/>
+                                            <line x1="50" y1="69" x2="80" y2="69" stroke="white" stroke-width="1"/>
+                                            <line x1="100" y1="39" x2="130" y2="39" stroke="white" stroke-width="1"/>
+                                            <line x1="100" y1="69" x2="130" y2="69" stroke="white" stroke-width="1"/>
+                                            
+                                            <circle cx="30" cy="54" r="10" fill="none" stroke="white" stroke-width="1"/>
+                                            <text x="26" y="57" fill="white" font-size="8">I</text>
+                                            <line x1="30" y1="20" x2="30" y2="44" stroke="white" stroke-width="1"/>
+                                            <line x1="30" y1="64" x2="30" y2="80" stroke="white" stroke-width="1"/>
+                                            <line x1="30" y1="20" x2="50" y2="20" stroke="white" stroke-width="1"/>
+                                            <line x1="30" y1="80" x2="50" y2="80" stroke="white" stroke-width="1"/>
+                                            <line x1="50" y1="20" x2="50" y2="39" stroke="white" stroke-width="1"/>
+                                            <line x1="50" y1="69" x2="50" y2="80" stroke="white" stroke-width="1"/>
+                                            
+                                            <text x="105" y="35" fill="#22c55e" font-size="8">I₁</text>
+                                            <text x="105" y="75" fill="#ef4444" font-size="8">I₂</text>
+                                        </svg>
+                                        <p class="text-gray-300 text-xs">I₁ = I × R₂/(R₁+R₂)</p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div id="stardelta" class="section hidden">
+                <div class="bg-white/10 backdrop-blur-sm rounded-2xl p-8 mb-8">
+                    <h3 class="text-3xl font-bold mb-6 gradient-text">Star-Delta Transformation</h3>
+                    
+                    <div class="mb-8 bg-gradient-to-r from-cyan-900/30 to-blue-900/30 rounded-xl p-6 border border-cyan-400/30">
+                        <h4 class="text-xl font-semibold mb-4 text-cyan-300">🔄 Why Transform?</h4>
+                        <div class="grid md:grid-cols-2 gap-4">
+                            <div class="space-y-2 text-gray-300">
+                                <p>• Simplifies complex circuit analysis</p>
+                                <p>• Enables calculation of equivalent resistance</p>
+                                <p>• Useful in three-phase systems</p>
+                            </div>
+                            <div class="space-y-2 text-gray-300">
+                                <p>• Bridge circuits become solvable</p>
+                                <p>• Network reduction techniques</p>
+                                <p>• Both forms are electrically equivalent</p>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="grid lg:grid-cols-2 gap-6">
+                        <div class="bg-gradient-to-br from-blue-900/50 to-purple-900/50 rounded-xl p-6 border border-blue-400/30">
+                            <h4 class="text-xl font-semibold mb-4 text-yellow-300">⭐ → Δ (Star to Delta)</h4>
+                            <div class="space-y-3">
+                                <div class="bg-black/40 rounded-lg p-3">
+                                    <p class="text-green-400 font-mono text-sm">R_AB = (R_A×R_B + R_B×R_C + R_C×R_A) / R_C</p>
+                                </div>
+                                <div class="bg-black/40 rounded-lg p-3">
+                                    <p class="text-green-400 font-mono text-sm">R_BC = (R_A×R_B + R_B×R_C + R_C×R_A) / R_A</p>
+                                </div>
+                                <div class="bg-black/40 rounded-lg p-3">
+                                    <p class="text-green-400 font-mono text-sm">R_CA = (R_A×R_B + R_B×R_C + R_C×R_A) / R_B</p>
+                                </div>
+                            </div>
+                            <div class="mt-4 bg-blue-900/30 rounded-lg p-3">
+                                <p class="text-blue-300 font-semibold text-sm mb-2">Memory Aid:</p>
+                                <p class="text-gray-300 text-xs">Numerator is always the same (sum of all products). Denominator is the opposite arm.</p>
+                            </div>
+                        </div>
+
+                        <div class="bg-gradient-to-br from-purple-900/50 to-pink-900/50 rounded-xl p-6 border border-purple-400/30">
+                            <h4 class="text-xl font-semibold mb-4 text-yellow-300">Δ → ⭐ (Delta to Star)</h4>
+                            <div class="space-y-3">
+                                <div class="bg-black/40 rounded-lg p-3">
+                                    <p class="text-green-400 font-mono text-sm">R_A = (R_AB × R_CA) / (R_AB + R_BC + R_CA)</p>
+                                </div>
+                                <div class="bg-black/40 rounded-lg p-3">
+                                    <p class="text-green-400 font-mono text-sm">R_B = (R_AB × R_BC) / (R_AB + R_BC + R_CA)</p>
+                                </div>
+                                <div class="bg-black/40 rounded-lg p-3">
+                                    <p class="text-green-400 font-mono text-sm">R_C = (R_BC × R_CA) / (R_AB + R_BC + R_CA)</p>
+                                </div>
+                            </div>
+                            <div class="mt-4 bg-purple-900/30 rounded-lg p-3">
+                                <p class="text-purple-300 font-semibold text-sm mb-2">Memory Aid:</p>
+                                <p class="text-gray-300 text-xs">Each star resistance = product of adjacent delta resistances / sum of all delta resistances</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="mt-8 bg-black/30 rounded-xl p-6">
+                        <h5 class="text-xl font-semibold mb-4 text-center">Circuit Transformation Visualization</h5>
+                        <div class="grid md:grid-cols-2 gap-8">
+                            <div class="text-center">
+                                <h6 class="text-lg font-semibold mb-3 text-green-300">Star (Y) Configuration</h6>
+                                <svg viewBox="0 0 200 200" class="w-full max-w-xs mx-auto mb-4">
+                                    <line x1="100" y1="100" x2="100" y2="50" stroke="white" stroke-width="3"/>
+                                    <line x1="100" y1="100" x2="150" y2="150" stroke="white" stroke-width="3"/>
+                                    <line x1="100" y1="100" x2="50" y2="150" stroke="white" stroke-width="3"/>
+                                    
+                                    <rect x="95" y="60" width="10" height="30" fill="none" stroke="#22c55e" stroke-width="2"/>
+                                    <text x="75" y="55" fill="#22c55e" font-size="12" font-weight="bold">R_A</text>
+                                    
+                                    <rect x="120" y="120" width="25" height="8" fill="none" stroke="#22c55e" stroke-width="2"/>
+                                    <text x="150" y="135" fill="#22c55e" font-size="12" font-weight="bold">R_B</text>
+                                    
+                                    <rect x="55" y="120" width="25" height="8" fill="none" stroke="#22c55e" stroke-width="2"/>
+                                    <text x="25" y="135" fill="#22c55e" font-size="12" font-weight="bold">R_C</text>
+                                    
+                                    <circle cx="100" cy="50" r="4" fill="#60a5fa"/>
+                                    <circle cx="150" cy="150" r="4" fill="#60a5fa"/>
+                                    <circle cx="50" cy="150" r="4" fill="#60a5fa"/>
+                                    <circle cx="100" cy="100" r="4" fill="#fbbf24"/>
+                                    
+                                    <text x="90" y="45" fill="#60a5fa" font-size="12" font-weight="bold">A</text>
+                                    <text x="155" y="155" fill="#60a5fa" font-size="12" font-weight="bold">B</text>
+                                    <text x="40" y="155" fill="#60a5fa" font-size="12" font-weight="bold">C</text>
+                                    <text x="85" y="95" fill="#fbbf24" font-size="10">N</text>
+                                </svg>
+                            </div>
+                            
+                            <div class="text-center">
+                                <h6 class="text-lg font-semibold mb-3 text-purple-300">Delta (Δ) Configuration</h6>
+                                <svg viewBox="0 0 200 200" class="w-full max-w-xs mx-auto mb-4">
+                                    <line x1="100" y1="50" x2="150" y2="150" stroke="white" stroke-width="3"/>
+                                    <line x1="150" y1="150" x2="50" y2="150" stroke="white" stroke-width="3"/>
+                                    <line x1="50" y1="150" x2="100" y2="50" stroke="white" stroke-width="3"/>
+                                    
+                                    <rect x="115" y="90" width="20" height="8" fill="none" stroke="#a855f7" stroke-width="2"/>
+                                    <text x="140" y="85" fill="#a855f7" font-size="12" font-weight="bold">R_AB</text>
+                                    
+                                    <rect x="90" y="140" width="20" height="8" fill="none" stroke="#a855f7" stroke-width="2"/>
+                                    <text x="85" y="165" fill="#a855f7" font-size="12" font-weight="bold">R_BC</text>
+                                    
+                                    <rect x="65" y="90" width="20" height="8" fill="none" stroke="#a855f7" stroke-width="2"/>
+                                    <text x="30" y="85" fill="#a855f7" font-size="12" font-weight="bold">R_CA</text>
+                                    
+                                    <circle cx="100" cy="50" r="4" fill="#60a5fa"/>
+                                    <circle cx="150" cy="150" r="4" fill="#60a5fa"/>
+                                    <circle cx="50" cy="150" r="4" fill="#60a5fa"/>
+                                    
+                                    <text x="90" y="45" fill="#60a5fa" font-size="12" font-weight="bold">A</text>
+                                    <text x="155" y="155" fill="#60a5fa" font-size="12" font-weight="bold">B</text>
+                                    <text x="40" y="155" fill="#60a5fa" font-size="12" font-weight="bold">C</text>
+                                </svg>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="mt-6 bg-gradient-to-r from-orange-900/30 to-red-900/30 rounded-xl p-6 border border-orange-400/30">
+                        <h5 class="text-xl font-semibold mb-4 text-orange-300">📝 Example Problem</h5>
+                        <div class="grid md:grid-cols-2 gap-6">
+                            <div>
+                                <p class="text-gray-300 mb-4">Convert the following Delta network to Star:</p>
+                                <div class="bg-black/40 rounded-lg p-4">
+                                    <p class="text-white font-semibold mb-2">Given Delta values:</p>
+                                    <div class="space-y-1 text-sm">
+                                        <p class="text-purple-400">R_AB = 30Ω</p>
+                                        <p class="text-purple-400">R_BC = 20Ω</p>
+                                        <p class="text-purple-400">R_CA = 10Ω</p>
+                                    </div>
+                                </div>
+                            </div>
+                            <div>
+                                <p class="text-gray-300 mb-4">Solution:</p>
+                                <div class="bg-black/40 rounded-lg p-4 space-y-2 font-mono text-sm">
+                                    <p class="text-yellow-400">Sum = 30 + 20 + 10 = 60Ω</p>
+                                    <p class="text-green-400">R_A = (30 × 10) / 60 = 5Ω</p>
+                                    <p class="text-green-400">R_B = (30 × 20) / 60 = 10Ω</p>
+                                    <p class="text-green-400">R_C = (20 × 10) / 60 = 3.33Ω</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div id="ac" class="section hidden">
+                <div class="bg-white/10 backdrop-blur-sm rounded-2xl p-8 mb-8">
+                    <h3 class="text-3xl font-bold mb-6 gradient-text">AC Circuit Analysis</h3>
+                    
+                    <div class="bg-gradient-to-r from-cyan-900/40 to-blue-900/40 rounded-xl p-6 mb-6 border border-cyan-400/30">
+                        <h4 class="text-xl font-semibold mb-4 text-yellow-300">〰️ Sinusoidal Signal Parameters</h4>
+                        <div class="grid md:grid-cols-2 gap-6">
+                            <div>
+                                <svg viewBox="0 0 400 200" class="w-full mb-4 bg-black/30 rounded-lg p-2">
+                                    <defs>
+                                        <pattern id="grid" width="20" height="20" patternUnits="userSpaceOnUse">
+                                            <path d="M 20 0 L 0 0 0 20" fill="none" stroke="gray" stroke-width="0.5" opacity="0.3"/>
+                                        </pattern>
+                                    </defs>
+                                    <rect width="400" height="200" fill="url(#grid)"/>
+                                    
+                                    <line x1="20" y1="100" x2="380" y2="100" stroke="white" stroke-width="1"/>
+                                    <line x1="20" y1="20" x2="20" y2="180" stroke="white" stroke-width="1"/>
+                                    
+                                    <path d="M 20 100 Q 70 40, 120 100 T 220 100 T 320 100" fill="none" stroke="#22c55e" stroke-width="3"/>
+                                    
+                                    <circle cx="70" cy="40" r="3" fill="#ef4444"/>
+                                    <circle cx="170" cy="160" r="3" fill="#ef4444"/>
+                                    <text x="75" y="35" fill="#ef4444" font-size="12">A_m</text>
+                                    <text x="175" y="180" fill="#ef4444" font-size="12">-A_m</text>
+                                    
+                                    <line x1="70" y1="180" x2="270" y2="180" stroke="#f59e0b" stroke-width="2"/>
+                                    <text x="160" y="195" fill="#f59e0b" font-size="12">T</text>
+                                    
+                                    <text x="380" y="105" fill="white" font-size="12">ωt</text>
+                                    <text x="10" y="20" fill="white" font-size="12">v(t)</text>
+                                </svg>
+                            </div>
+                            <div class="space-y-4">
+                                <div class="bg-black/40 rounded-lg p-4">
+                                    <p class="text-green-400 font-mono mb-2">v(t) = A_m sin(ωt + φ)</p>
+                                    <div class="space-y-2 text-sm text-gray-300">
+                                        <p>• <span class="text-red-400">A_m</span>: Peak/Maximum amplitude</p>
+                                        <p>• <span class="text-blue-400">ω</span>: Angular frequency (rad/s)</p>
+                                        <p>• <span class="text-yellow-400">φ</span>: Phase angle</p>
+                                        <p>• <span class="text-green-400">f</span>: Frequency = ω/2π (Hz)</p>
+                                        <p>• <span class="text-purple-400">T</span>: Time period = 1/f (s)</p>
+                                    </div>
+                                </div>
+                                <div class="bg-gradient-to-r from-green-900/30 to-blue-900/30 rounded-lg p-4">
+                                    <p class="text-cyan-300 font-semibold mb-2">Important Values:</p>
+                                    <div class="space-y-1 text-sm font-mono">
+                                        <p class="text-green-400">RMS = A_m/√2 = 0.707 × A_m</p>
+                                        <p class="text-yellow-400">Average = 0 (for pure sine wave)</p>
+                                        <p class="text-blue-400">Form Factor = RMS/Avg = 1.11</p>
+                                        <p class="text-pink-400">Peak Factor = A_m/RMS = √2</p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="grid md:grid-cols-2 gap-6 mb-6">
+                        <div class="bg-gradient-to-br from-green-900/40 to-blue-900/40 rounded-xl p-6 border border-green-400/30">
+                            <h4 class="text-xl font-semibold mb-4 text-green-300">⚡ AC Circuits</h4>
+                            <div class="space-y-3 text-gray-300">
+                                <div class="flex items-center space-x-2">
+                                    <span class="text-green-400">✓</span>
+                                    <span>Voltage and current vary with time</span>
+                                </div>
+                                <div class="flex items-center space-x-2">
+                                    <span class="text-green-400">✓</span>
+                                    <span>Reactance affects circuit behavior</span>
+                                </div>
+                                <div class="flex items-center space-x-2">
+                                    <span class="text-green-400">✓</span>
+                                    <span>Impedance (Z) = R + jX</span>
+                                </div>
+                                <div class="flex items-center space-x-2">
+                                    <span class="text-green-400">✓</span>
+                                    <span>Phase difference between V and I</span>
+                                </div>
+                                <div class="flex items-center space-x-2">
+                                    <span class="text-green-400">✓</span>
+                                    <span>Power factor considerations</span>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="bg-gradient-to-br from-purple-900/40 to-pink-900/40 rounded-xl p-6 border border-purple-400/30">
+                            <h4 class="text-xl font-semibold mb-4 text-purple-300">🔋 DC Circuits</h4>
+                            <div class="space-y-3 text-gray-300">
+                                <div class="flex items-center space-x-2">
+                                    <span class="text-purple-400">•</span>
+                                    <span>Constant voltage and current</span>
+                                </div>
+                                <div class="flex items-center space-x-2">
+                                    <span class="text-purple-400">•</span>
+                                    <span>Only resistance affects current</span>
+                                </div>
+                                <div class="flex items-center space-x-2">
+                                    <span class="text-purple-400">•</span>
+                                    <span>Ohm's law: V = IR</span>
+                                </div>
+                                <div class="flex items-center space-x-2">
+                                    <span class="text-purple-400">•</span>
+                                    <span>No phase difference</span>
+                                </div>
+                                <div class="flex items-center space-x-2">
+                                    <span class="text-purple-400">•</span>
+                                    <span>Power = VI (always positive)</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="space-y-6">
+                        <div class="bg-gradient-to-r from-red-900/40 to-orange-900/40 rounded-xl p-6 border border-red-400/30">
+                            <h4 class="text-xl font-semibold mb-4 text-red-300">🔧 AC Analysis: Resistor</h4>
+                            <div class="grid md:grid-cols-3 gap-4">
+                                <div class="bg-black/40 rounded-lg p-4">
+                                    <p class="text-red-300 font-semibold mb-2">Voltage-Current:</p>
+                                    <p class="font-mono text-sm text-green-400 mb-2">v = i × R</p>
+                                    <p class="text-gray-300 text-xs">In phase relationship</p>
+                                </div>
+                                <div class="bg-black/40 rounded-lg p-4">
+                                    <p class="text-red-300 font-semibold mb-2">Impedance:</p>
+                                    <p class="font-mono text-sm text-green-400 mb-2">Z = R + j0 = R</p>
+                                    <p class="text-gray-300 text-xs">Purely resistive</p>
+                                </div>
+                                <div class="bg-black/40 rounded-lg p-4">
+                                    <p class="text-red-300 font-semibold mb-2">Phase Angle:</p>
+                                    <p class="font-mono text-sm text-green-400 mb-2">φ = 0°</p>
+                                    <p class="text-gray-300 text-xs">No phase shift</p>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="bg-gradient-to-r from-blue-900/40 to-indigo-900/40 rounded-xl p-6 border border-blue-400/30">
+                            <h4 class="text-xl font-semibold mb-4 text-blue-300">🌀 AC Analysis: Inductor</h4>
+                            <div class="grid md:grid-cols-3 gap-4">
+                                <div class="bg-black/40 rounded-lg p-4">
+                                    <p class="text-blue-300 font-semibold mb-2">Reactance:</p>
+                                    <p class="font-mono text-sm text-green-400 mb-2">X_L = ωL = 2πfL</p>
+                                    <p class="text-gray-300 text-xs">Inductive reactance</p>
+                                </div>
+                                <div class="bg-black/40 rounded-lg p-4">
+                                    <p class="text-blue-300 font-semibold mb-2">Impedance:</p>
+                                    <p class="font-mono text-sm text-green-400 mb-2">Z = jX_L</p>
+                                    <p class="text-gray-300 text-xs">Purely inductive</p>
+                                </div>
+                                <div class="bg-black/40 rounded-lg p-4">
+                                    <p class="text-blue-300 font-semibold mb-2">Phase Angle:</p>
+                                    <p class="font-mono text-sm text-green-400 mb-2">φ = +90°</p>
+                                    <p class="text-gray-300 text-xs">V leads I by 90°</p>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="bg-gradient-to-r from-purple-900/40 to-pink-900/40 rounded-xl p-6 border border-purple-400/30">
+                            <h4 class="text-xl font-semibold mb-4 text-purple-300">⚡ AC Analysis: Capacitor</h4>
+                            <div class="grid md:grid-cols-3 gap-4">
+                                <div class="bg-black/40 rounded-lg p-4">
+                                    <p class="text-purple-300 font-semibold mb-2">Reactance:</p>
+                                    <p class="font-mono text-sm text-green-400 mb-2">X_C = 1/(ωC) = 1/(2πfC)</p>
+                                    <p class="text-gray-300 text-xs">Capacitive reactance</p>
+                                </div>
+                                <div class="bg-black/40 rounded-lg p-4">
+                                    <p class="text-purple-300 font-semibold mb-2">Impedance:</p>
+                                    <p class="font-mono text-sm text-green-400 mb-2">Z = -jX_C</p>
+                                    <p class="text-gray-300 text-xs">Purely capacitive</p>
+                                </div>
+                                <div class="bg-black/40 rounded-lg p-4">
+                                    <p class="text-purple-300 font-semibold mb-2">Phase Angle:</p>
+                                    <p class="font-mono text-sm text-green-400 mb-2">φ = -90°</p>
+                                    <p class="text-gray-300 text-xs">V lags I by 90°</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="mt-6 bg-gradient-to-r from-yellow-900/40 to-orange-900/40 rounded-xl p-6 border border-yellow-400/30">
+                        <h4 class="text-xl font-semibold mb-4 text-yellow-300">⚡ Power in AC Circuits</h4>
+                        <div class="grid md:grid-cols-2 gap-6">
+                            <div class="space-y-4">
+                                <div class="bg-black/40 rounded-lg p-4">
+                                    <p class="text-green-300 font-semibold mb-2">True Power (P):</p>
+                                    <p class="font-mono text-sm text-green-400 mb-2">P = VI cos φ (Watts)</p>
+                                    <p class="text-gray-300 text-xs">Actual power consumed</p>
+                                </div>
+                                <div class="bg-black/40 rounded-lg p-4">
+                                    <p class="text-blue-300 font-semibold mb-2">Reactive Power (Q):</p>
+                                    <p class="font-mono text-sm text-green-400 mb-2">Q = VI sin φ (VAR)</p>
+                                    <p class="text-gray-300 text-xs">Power stored/returned</p>
+                                </div>
+                            </div>
+                            <div class="space-y-4">
+                                <div class="bg-black/40 rounded-lg p-4">
+                                    <p class="text-purple-300 font-semibold mb-2">Apparent Power (S):</p>
+                                    <p class="font-mono text-sm text-green-400 mb-2">S = VI (VA)</p>
+                                    <p class="text-gray-300 text-xs">Total power in circuit</p>
+                                </div>
+                                <div class="bg-black/40 rounded-lg p-4">
+                                    <p class="text-pink-300 font-semibold mb-2">Power Factor:</p>
+                                    <p class="font-mono text-sm text-green-400 mb-2">pf = cos φ = P/S</p>
+                                    <p class="text-gray-300 text-xs">Efficiency indicator</p>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="mt-4 bg-yellow-900/30 rounded-lg p-4">
+                            <p class="text-yellow-300 font-semibold mb-2">Power Triangle:</p>
+                            <p class="font-mono text-sm text-green-400">S² = P² + Q²</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div id="theorems" class="section hidden">
+                <div class="bg-white/10 backdrop-blur-sm rounded-2xl p-8 mb-8">
+                    <h3 class="text-3xl font-bold mb-6 gradient-text">Network Theorems</h3>
+                    
+                    <div class="bg-gradient-to-r from-blue-900/40 to-purple-900/40 rounded-xl p-6 mb-6 border border-blue-400/30">
+                        <h4 class="text-xl font-semibold mb-4 text-yellow-300">🔌 Thevenin's Theorem</h4>
+                        <div class="mb-4">
+                            <p class="text-gray-300 mb-4">Any linear bilateral network can be replaced by a single voltage source (V_th) in series with a single resistance (R_th).</p>
+                        </div>
+                        
+                        <div class="grid md:grid-cols-2 gap-6">
+                            <div class="bg-black/40 rounded-lg p-4">
+                                <h5 class="text-blue-300 font-semibold mb-3">Steps to Find Thevenin Equivalent:</h5>
+                                <div class="space-y-2 text-sm text-gray-300">
+                                    <p><span class="text-yellow-400">1.</span> Remove the load resistor</p>
+                                    <p><span class="text-yellow-400">2.</span> Find V_th: Open circuit voltage across terminals</p>
+                                    <p><span class="text-yellow-400">3.</span> Find R_th: Replace all sources with their internal resistance</p>
+                                    <p><span class="text-yellow-400">4.</span> Draw equivalent circuit</p>
+                                    <p><span class="text-yellow-400">5.</span> Connect load and solve</p>
+                                </div>
+                            </div>
+                            <div class="bg-black/40 rounded-lg p-4">
+                                <h5 class="text-purple-300 font-semibold mb-3">Thevenin Equivalent Circuit:</h5>
+                                <svg viewBox="0 0 200 100" class="w-full mb-3">
+                                    <circle cx="50" cy="50" r="20" fill="none" stroke="white" stroke-width="2"/>
+                                    <text x="40" y="55" fill="white" font-size="10">V_th</text>
+                                    
+                                    <rect x="90" y="45" width="30" height="10" fill="none" stroke="white" stroke-width="2"/>
+                                    <text x="95" y="40" fill="white" font-size="10">R_th</text>
+                                    
+                                    <rect x="150" y="45" width="25" height="10" fill="none" stroke="#22c55e" stroke-width="2"/>
+                                    <text x="155" y="40" fill="#22c55e" font-size="10">R_L</text>
+                                    
+                                    <line x1="70" y1="50" x2="90" y2="50" stroke="white" stroke-width="2"/>
+                                    <line x1="120" y1="50" x2="150" y2="50" stroke="white" stroke-width="2"/>
+                                    <line x1="175" y1="50" x2="185" y2="50" stroke="white" stroke-width="2"/>
+                                    <line x1="185" y1="50" x2="185" y2="80" stroke="white" stroke-width="2"/>
+                                    <line x1="185" y1="80" x2="50" y2="80" stroke="white" stroke-width="2"/>
+                                    <line x1="50" y1="80" x2="50" y2="70" stroke="white" stroke-width="2"/>
+                                    
+                                    <path d="M 130 40 L 145 40" stroke="#ef4444" stroke-width="2" marker-end="url(#arrowhead)"/>
+                                    <text x="125" y="30" fill="#ef4444" font-size="10">I_L</text>
+                                </svg>
+                                <p class="font-mono text-sm text-green-400">I_L = V_th / (R_th + R_L)</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="bg-gradient-to-r from-purple-900/40 to-pink-900/40 rounded-xl p-6 mb-6 border border-purple-400/30">
+                        <h4 class="text-xl font-semibold mb-4 text-yellow-300">🔄 Norton's Theorem</h4>
+                        <div class="mb-4">
+                            <p class="text-gray-300 mb-4">Any linear bilateral network can be replaced by a single current source (I_N) in parallel with a single resistance (R_N).</p>
+                        </div>
+                        <div class="grid md:grid-cols-2 gap-6">
+                            <div class="bg-black/40 rounded-lg p-4">
+                                <h5 class="text-purple-300 font-semibold mb-3">Steps to Find Norton Equivalent:</h5>
+                                <div class="space-y-2 text-sm text-gray-300">
+                                    <p><span class="text-yellow-400">1.</span> Remove the load resistor</p>
+                                    <p><span class="text-yellow-400">2.</span> Find I_N: Short circuit current through terminals</p>
+                                    <p><span class="text-yellow-400">3.</span> Find R_N: Same as R_th</p>
+                                    <p><span class="text-yellow-400">4.</span> Draw equivalent circuit</p>
+                                    <p><span class="text-yellow-400">5.</span> Connect load and solve</p>
+                                </div>
+                            </div>
+                            <div class="bg-black/40 rounded-lg p-4">
+                                <h5 class="text-pink-300 font-semibold mb-3">Norton Equivalent Circuit:</h5>
+                                <svg viewBox="0 0 200 120" class="w-full mb-3">
+                                    <circle cx="50" cy="60" r="15" fill="none" stroke="white" stroke-width="2"/>
+                                    <text x="43" y="65" fill="white" font-size="10">I_N</text>
+                                    <path d="M 50 70 L 50 50" stroke="white" stroke-width="2" marker-end="url(#arrowhead)"/>
+                                    
+                                    <rect x="90" y="55" width="30" height="10" fill="none" stroke="white" stroke-width="2"/>
+                                    <text x="95" y="50" fill="white" font-size="10">R_N</text>
+                                    
+                                    <rect x="150" y="55" width="30" height="10" fill="none" stroke="#22c55e" stroke-width="2"/>
+                                    <text x="155" y="50" fill="#22c55e" font-size="10">R_L</text>
+                                    
+                                    <line x1="50" y1="30" x2="165" y2="30" stroke="white" stroke-width="2"/>
+                                    <line x1="50" y1="90" x2="165" y2="90" stroke="white" stroke-width="2"/>
+                                    <line x1="50" y1="45" x2="50" y2="30" stroke="white" stroke-width="2"/>
+                                    <line x1="50" y1="75" x2="50" y2="90" stroke="white" stroke-width="2"/>
+                                    <line x1="105" y1="30" x2="105" y2="55" stroke="white" stroke-width="2"/>
+                                    <line x1="105" y1="65" x2="105" y2="90" stroke="white" stroke-width="2"/>
+                                    <line x1="165" y1="30" x2="165" y2="55" stroke="white" stroke-width="2"/>
+                                    <line x1="165" y1="65" x2="165" y2="90" stroke="white" stroke-width="2"/>
+                                    
+                                    <path d="M 125 70 L 140 70" stroke="#ef4444" stroke-width="2" marker-end="url(#arrowhead)"/>
+                                    <text x="125" y="65" fill="#ef4444" font-size="8">I_L</text>
+                                </svg>
+                                <p class="font-mono text-sm text-green-400">I_L = I_N × R_N / (R_N + R_L)</p>
+                                <p class="text-gray-300 text-xs mt-2">Note: I_N = V_th / R_th and R_N = R_th</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="bg-gradient-to-r from-green-900/40 to-teal-900/40 rounded-xl p-6 mb-6 border border-green-400/30">
+                        <h4 class="text-xl font-semibold mb-4 text-yellow-300">⚡ Superposition Theorem</h4>
+                        <div class="mb-4">
+                            <p class="text-gray-300 mb-4">In a linear circuit with multiple sources, the response at any element is the sum of responses due to each source acting independently.</p>
+                        </div>
+                        
+                        <div class="grid md:grid-cols-2 gap-6">
+                            <div class="bg-black/40 rounded-lg p-4">
+                                <h5 class="text-green-300 font-semibold mb-3">Application Steps:</h5>
+                                <div class="space-y-2 text-sm text-gray-300">
+                                    <p><span class="text-yellow-400">1.</span> Turn off all sources except one</p>
+                                    <p><span class="text-yellow-400">2.</span> Calculate response due to active source</p>
+                                    <p><span class="text-yellow-400">3.</span> Repeat for each source individually</p>
+                                    <p><span class="text-yellow-400">4.</span> Sum all individual responses</p>
+                                    <p class="text-cyan-400 font-semibold mt-3">Note: Voltage source → short circuit</p>
+                                    <p class="text-cyan-400 font-semibold">Current source → open circuit</p>
+                                </div>
+                            </div>
+                            <div class="bg-black/40 rounded-lg p-4">
+                                <h5 class="text-teal-300 font-semibold mb-3">Limitations:</h5>
+                                <div class="space-y-2 text-sm text-gray-300">
+                                    <p>• Only applies to linear circuits</p>
+                                    <p>• Cannot be used for power calculations directly</p>
+                                    <p>• Dependent sources need special consideration</p>
+                                    <p>• Each source must be independent</p>
+                                </div>
+                                <div class="mt-4 p-3 bg-green-900/30 rounded-lg">
+                                    <p class="text-green-400 font-mono text-sm">I_total = I₁ + I₂ + I₃ + ...</p>
+                                    <p class="text-green-400 font-mono text-sm">V_total = V₁ + V₂ + V₃ + ...</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="bg-gradient-to-r from-orange-900/40 to-red-900/40 rounded-xl p-6 mb-6 border border-orange-400/30">
+                        <h4 class="text-xl font-semibold mb-4 text-yellow-300">⚡ Maximum Power Transfer Theorem</h4>
+                        <div class="mb-4">
+                            <p class="text-gray-300 mb-4">Maximum power is transferred to the load when the load resistance equals the source resistance (R_L = R_s).</p>
+                        </div>
+                        
+                        <div class="grid md:grid-cols-2 gap-6">
+                            <div class="bg-black/40 rounded-lg p-4">
+                                <h5 class="text-orange-300 font-semibold mb-3">Conditions:</h5>
+                                <div class="space-y-3">
+                                    <div class="p-3 bg-red-900/30 rounded-lg">
+                                        <p class="text-red-400 font-mono text-sm mb-1">For DC Circuits:</p>
+                                        <p class="text-green-400 font-mono text-sm">R_L = R_s</p>
+                                    </div>
+                                    <div class="p-3 bg-orange-900/30 rounded-lg">
+                                        <p class="text-orange-400 font-mono text-sm mb-1">For AC Circuits:</p>
+                                        <p class="text-green-400 font-mono text-sm">Z_L = Z_s*</p>
+                                        <p class="text-gray-300 text-xs">(Load impedance = conjugate of source impedance)</p>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="bg-black/40 rounded-lg p-4">
+                                <h5 class="text-red-300 font-semibold mb-3">Maximum Power:</h5>
+                                <div class="space-y-3">
+                                    <div class="p-3 bg-black/50 rounded-lg">
+                                        <p class="text-green-400 font-mono text-lg">P_max = V_s² / (4R_s)</p>
+                                    </div>
+                                    <div class="space-y-1 text-sm text-gray-300">
+                                        <p>• Efficiency at max power = 50%</p>
+                                        <p>• Half power dissipated in source resistance</p>
+                                        <p>• Used in communication systems</p>
+                                        <p>• Not used in power transmission (low efficiency)</p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div id="calculator" class="section hidden">
+                <div class="bg-white/10 backdrop-blur-sm rounded-2xl p-8 mb-8">
+                    <h3 class="text-3xl font-bold mb-6 gradient-text">Circuit Calculator</h3>
+                    
+                    <div class="grid lg:grid-cols-2 gap-6">
+                        <div class="bg-gradient-to-br from-blue-900/40 to-purple-900/40 rounded-xl p-6 border border-blue-400/30">
+                            <h4 class="text-xl font-semibold mb-4 text-yellow-300">⚡ Basic Circuit Calculations</h4>
+                            
+                            <div class="bg-black/40 rounded-lg p-4 mb-4">
+                                <h5 class="text-blue-300 font-semibold mb-3">Ohm's Law Calculator</h5>
+                                <div class="grid grid-cols-2 gap-3 mb-3">
+                                    <input type="number" id="voltage" placeholder="Voltage (V)" class="px-3 py-2 bg-white/10 border border-white/30 rounded-lg text-white placeholder-gray-400">
+                                    <input type="number" id="current" placeholder="Current (A)" class="px-3 py-2 bg-white/10 border border-white/30 rounded-lg text-white placeholder-gray-400">
+                                    <input type="number" id="resistance" placeholder="Resistance (Ω)" class="px-3 py-2 bg-white/10 border border-white/30 rounded-lg text-white placeholder-gray-400">
+                                    <input type="number" id="power" placeholder="Power (W)" class="px-3 py-2 bg-white/10 border border-white/30 rounded-lg text-white placeholder-gray-400">
+                                </div>
+                                <button onclick="calculateOhmsLaw()" class="w-full bg-gradient-to-r from-blue-500 to-purple-500 px-4 py-2 rounded-lg hover:from-blue-600 hover:to-purple-600 transition">
+                                    Calculate
+                                </button>
+                                <div id="ohmsResult" class="mt-3 p-3 bg-green-900/30 rounded-lg hidden">
+                                    <p class="text-green-400 font-semibold">Results:</p>
+                                    <div id="ohmsValues" class="text-sm space-y-1 mt-2"></div>
+                                </div>
+                            </div>
+
+                            <div class="bg-black/40 rounded-lg p-4">
+                                <h5 class="text-purple-300 font-semibold mb-3">Series/Parallel Resistors</h5>
+                                <div class="mb-3">
+                                    <input type="text" id="resistorValues" placeholder="Enter resistor values (comma separated)" class="w-full px-3 py-2 bg-white/10 border border-white/30 rounded-lg text-white placeholder-gray-400">
+                                </div>
+                                <div class="flex gap-2 mb-3">
+                                    <button onclick="calculateSeries()" class="flex-1 bg-gradient-to-r from-green-500 to-blue-500 px-3 py-2 rounded-lg hover:from-green-600 hover:to-blue-600 transition text-sm">
+                                        Series
+                                    </button>
+                                    <button onclick="calculateParallel()" class="flex-1 bg-gradient-to-r from-purple-500 to-pink-500 px-3 py-2 rounded-lg hover:from-purple-600 hover:to-pink-600 transition text-sm">
+                                        Parallel
+                                    </button>
+                                </div>
+                                <div id="resistorResult" class="p-3 bg-green-900/30 rounded-lg hidden">
+                                    <p class="text-green-400 font-semibold">Equivalent Resistance:</p>
+                                    <div id="resistorEquivalent" class="text-lg font-mono text-yellow-400 mt-1"></div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="bg-gradient-to-br from-green-900/40 to-teal-900/40 rounded-xl p-6 border border-green-400/30">
+                            <h4 class="text-xl font-semibold mb-4 text-yellow-300">〰️ AC Circuit Calculations</h4>
+                            
+                            <div class="bg-black/40 rounded-lg p-4 mb-4">
+                                <h5 class="text-green-300 font-semibold mb-3">Reactance Calculator</h5>
+                                <div class="grid grid-cols-2 gap-3 mb-3">
+                                    <input type="number" id="frequency" placeholder="Frequency (Hz)" class="px-3 py-2 bg-white/10 border border-white/30 rounded-lg text-white placeholder-gray-400">
+                                    <input type="number" id="inductance" placeholder="Inductance (mH)" class="px-3 py-2 bg-white/10 border border-white/30 rounded-lg text-white placeholder-gray-400">
+                                    <input type="number" id="capacitance" placeholder="Capacitance (μF)" class="px-3 py-2 bg-white/10 border border-white/30 rounded-lg text-white placeholder-gray-400">
+                                </div>
+                                <button onclick="calculateReactance()" class="w-full bg-gradient-to-r from-green-500 to-teal-500 px-4 py-2 rounded-lg hover:from-green-600 hover:to-teal-600 transition">
+                                    Calculate Reactance
+                                </button>
+                                <div id="reactanceResult" class="mt-3 p-3 bg-green-900/30 rounded-lg hidden">
+                                    <div id="reactanceValues" class="text-sm space-y-1"></div>
+                                </div>
+                            </div>
+
+                            <div class="bg-black/40 rounded-lg p-4">
+                                <h5 class="text-teal-300 font-semibold mb-3">Power Factor Calculator</h5>
+                                <div class="grid grid-cols-2 gap-3 mb-3">
+                                    <input type="number" id="realPower" placeholder="Real Power (W)" class="px-3 py-2 bg-white/10 border border-white/30 rounded-lg text-white placeholder-gray-400">
+                                    <input type="number" id="apparentPower" placeholder="Apparent Power (VA)" class="px-3 py-2 bg-white/10 border border-white/30 rounded-lg text-white placeholder-gray-400">
+                                </div>
+                                <button onclick="calculatePowerFactor()" class="w-full bg-gradient-to-r from-teal-500 to-cyan-500 px-4 py-2 rounded-lg hover:from-teal-600 hover:to-cyan-600 transition">
+                                    Calculate Power Factor
+                                </button>
+                                <div id="powerFactorResult" class="mt-3 p-3 bg-teal-900/30 rounded-lg hidden">
+                                    <div id="powerFactorValues" class="text-sm space-y-1"></div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="mt-6 bg-gradient-to-r from-indigo-900/40 to-purple-900/40 rounded-xl p-6 border border-indigo-400/30">
+                        <h4 class="text-xl font-semibold mb-4 text-yellow-300">📖 Quick Reference Formulas</h4>
+                        <div class="grid md:grid-cols-3 gap-4">
+                            <div class="bg-black/40 rounded-lg p-4">
+                                <h5 class="text-blue-300 font-semibold mb-2">Basic Laws</h5>
+                                <div class="space-y-1 text-sm font-mono">
+                                    <p class="text-green-400">V = I × R</p>
+                                    <p class="text-green-400">P = V × I</p>
+                                    <p class="text-green-400">P = I²R</p>
+                                    <p class="text-green-400">P = V²/R</p>
+                                </div>
+                            </div>
+                            <div class="bg-black/40 rounded-lg p-4">
+                                <h5 class="text-purple-300 font-semibold mb-2">AC Formulas</h5>
+                                <div class="space-y-1 text-sm font-mono">
+                                    <p class="text-green-400">X_L = 2πfL</p>
+                                    <p class="text-green-400">X_C = 1/(2πfC)</p>
+                                    <p class="text-green-400">Z = √(R² + X²)</p>
+                                    <p class="text-green-400">φ = tan⁻¹(X/R)</p>
+                                </div>
+                            </div>
+                            <div class="bg-black/40 rounded-lg p-4">
+                                <h5 class="text-pink-300 font-semibold mb-2">Power Relations</h5>
+                                <div class="space-y-1 text-sm font-mono">
+                                    <p class="text-green-400">S = VI</p>
+                                    <p class="text-green-400">P = VI cos φ</p>
+                                    <p class="text-green-400">Q = VI sin φ</p>
+                                    <p class="text-green-400">S² = P² + Q²</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <script>
+        let currentSection = 'hero';
+        
+        function showSection(section) {
+            // Hide all sections
+            document.querySelectorAll('.section').forEach(el => {
+                el.classList.add('hidden');
+            });
+            
+            // Show selected section
+            document.getElementById(section).classList.remove('hidden');
+            document.getElementById(section).classList.add('fade-in');
+            
+            currentSection = section;
+            
+            // Close mobile menu if open
+            document.getElementById('sideMenu').classList.add('-translate-x-full');
+        }
+        
+        function toggleMenu() {
+            const menu = document.getElementById('sideMenu');
+            menu.classList.toggle('-translate-x-full');
+        }
+
+        // Calculator Functions
+        function calculateOhmsLaw() {
+            const v = parseFloat(document.getElementById('voltage').value) || null;
+            const i = parseFloat(document.getElementById('current').value) || null;
+            const r = parseFloat(document.getElementById('resistance').value) || null;
+            const p = parseFloat(document.getElementById('power').value) || null;
+            
+            let results = {};
+            
+            // Calculate missing values
+            if (v && i) {
+                results.resistance = (v / i).toFixed(3);
+                results.power = (v * i).toFixed(3);
+            } else if (v && r) {
+                results.current = (v / r).toFixed(3);
+                results.power = (v * v / r).toFixed(3);
+            } else if (i && r) {
+                results.voltage = (i * r).toFixed(3);
+                results.power = (i * i * r).toFixed(3);
+            } else if (v && p) {
+                results.current = (p / v).toFixed(3);
+                results.resistance = (v * v / p).toFixed(3);
+            } else if (i && p) {
+                results.voltage = (p / i).toFixed(3);
+                results.resistance = (p / (i * i)).toFixed(3);
+            } else if (r && p) {
+                results.current = Math.sqrt(p / r).toFixed(3);
+                results.voltage = Math.sqrt(p * r).toFixed(3);
+            }
+            
+            const resultDiv = document.getElementById('ohmsResult');
+            const valuesDiv = document.getElementById('ohmsValues');
+            
+            if (Object.keys(results).length > 0) {
+                let html = '';
+                if (results.voltage) html += `<p class="text-yellow-400">Voltage: ${results.voltage} V</p>`;
+                if (results.current) html += `<p class="text-blue-400">Current: ${results.current} A</p>`;
+                if (results.resistance) html += `<p class="text-green-400">Resistance: ${results.resistance} Ω</p>`;
+                if (results.power) html += `<p class="text-red-400">Power: ${results.power} W</p>`;
+                
+                valuesDiv.innerHTML = html;
+                resultDiv.classList.remove('hidden');
+            } else {
+                alert('Please enter at least two values to calculate the others.');
+            }
+        }
+        
+        function calculateSeries() {
+            const input = document.getElementById('resistorValues').value;
+            const resistors = input.split(',').map(r => parseFloat(r.trim())).filter(r => !isNaN(r));
+            
+            if (resistors.length < 2) {
+                alert('Please enter at least 2 resistor values.');
+                return;
+            }
+            
+            const total = resistors.reduce((sum, r) => sum + r, 0);
+            
+            document.getElementById('resistorEquivalent').textContent = `${total.toFixed(3)} Ω`;
+            document.getElementById('resistorResult').classList.remove('hidden');
+        }
+        
+        function calculateParallel() {
+            const input = document.getElementById('resistorValues').value;
+            const resistors = input.split(',').map(r => parseFloat(r.trim())).filter(r => !isNaN(r));
+            
+            if (resistors.length < 2) {
+                alert('Please enter at least 2 resistor values.');
+                return;
+            }
+            
+            const reciprocalSum = resistors.reduce((sum, r) => sum + (1 / r), 0);
+            const total = 1 / reciprocalSum;
+            
+            document.getElementById('resistorEquivalent').textContent = `${total.toFixed(3)} Ω`;
+            document.getElementById('resistorResult').classList.remove('hidden');
+        }
+        
+        function calculateReactance() {
+            const f = parseFloat(document.getElementById('frequency').value);
+            const l = parseFloat(document.getElementById('inductance').value) / 1000; // Convert mH to H
+            const c = parseFloat(document.getElementById('capacitance').value) / 1000000; // Convert μF to F
+            
+            let html = '';
+            
+            if (f && l) {
+                const xl = 2 * Math.PI * f * l;
+                html += `<p class="text-blue-400">Inductive Reactance (X_L): ${xl.toFixed(3)} Ω</p>`;
+            }
+            
+            if (f && c) {
+                const xc = 1 / (2 * Math.PI * f * c);
+                html += `<p class="text-purple-400">Capacitive Reactance (X_C): ${xc.toFixed(3)} Ω</p>`;
+            }
+            
+            if (f && l && c) {
+                const xl = 2 * Math.PI * f * l;
+                const xc = 1 / (2 * Math.PI * f * c);
+                const net = xl - xc;
+                html += `<p class="text-yellow-400">Net Reactance: ${net.toFixed(3)} Ω</p>`;
+                html += `<p class="text-gray-300">Circuit is ${net > 0 ? 'Inductive' : net < 0 ? 'Capacitive' : 'Resonant'}</p>`;
+            }
+            
+            if (html) {
+                document.getElementById('reactanceValues').innerHTML = html;
+                document.getElementById('reactanceResult').classList.remove('hidden');
+            } else {
+                alert('Please enter frequency and at least one component value.');
+            }
+        }
+        
+        function calculatePowerFactor() {
+            const p = parseFloat(document.getElementById('realPower').value);
+            const s = parseFloat(document.getElementById('apparentPower').value);
+            
+            if (p && s) {
+                if (s < p) {
+                    alert('Apparent Power (VA) cannot be less than Real Power (W).');
+                    return;
+                }
+                const pf = p / s;
+                const angle = Math.acos(pf) * (180 / Math.PI);
+                const q = Math.sqrt(s * s - p * p);
+                
+                let html = `
+                    <p class="text-green-400">Power Factor: ${pf.toFixed(3)}</p>
+                    <p class="text-blue-400">Phase Angle: ${angle.toFixed(2)}°</p>
+                    <p class="text-purple-400">Reactive Power: ${q.toFixed(3)} VAR</p>
+                    <p class="text-gray-300">Power Factor is ${pf > 0.9 ? 'Good' : pf > 0.8 ? 'Fair' : 'Poor'}</p>
+                `;
+                
+                document.getElementById('powerFactorValues').innerHTML = html;
+                document.getElementById('powerFactorResult').classList.remove('hidden');
+            } else {
+                alert('Please enter both real power and apparent power values.');
+            }
+        }
+
+        // Keyboard shortcuts
+        document.addEventListener('keydown', function(e) {
+            if (e.altKey) {
+                switch(e.key) {
+                    case '1': showSection('fundamentals'); break;
+                    case '2': showSection('kirchhoff'); break;
+                    case '3': showSection('equivalent'); break;
+                    case '4': showSection('stardelta'); break;
+                    case '5': showSection('ac'); break;
+                    case '6': showSection('theorems'); break;
+                    case '7': showSection('calculator'); break;
+                    case 'h': showSection('hero'); break;
+                }
+            }
+        });
+
+        // Auto-hide mobile menu on scroll
+        let scrollTimer = null;
+        window.addEventListener('scroll', function() {
+            if (scrollTimer !== null) {
+                clearTimeout(scrollTimer);
+            }
+            scrollTimer = setTimeout(function() {
+                document.getElementById('sideMenu').classList.add('-translate-x-full');
+            }, 150);
+        });
+    </script>
+</body>
+</html>
